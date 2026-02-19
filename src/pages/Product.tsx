@@ -10,7 +10,7 @@ export interface Review {
 }
 
 export function Product() {
-  /* temp */
+  // temp
   const [featuredList, setFeaturedList] = useState<Array<any>>([]);
   const [retailList, setRetailList] = useState<Array<any>>([]);
   const [featureList, setFeatureList] = useState<Array<any>>([]);
@@ -111,6 +111,7 @@ export function Product() {
         // gap = 40px (gap-10)
         // minWidth = 280px
         const calculatedColumns = Math.floor((width + 40) / (280 + 40));
+
         setColumns(Math.max(1, Math.min(3, calculatedColumns)));
       }
     });

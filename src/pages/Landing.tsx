@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ProductCard } from '../components/cards/ProductCard';
 
 export function Landing() {
-  /* temp */
+  // temp
   const [featuredList, setFeaturedList] = useState<Array<any>>([]);
   const [highlyRatedList, setHighlyRatedList] = useState<Array<any>>([]);
 
