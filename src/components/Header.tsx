@@ -1,9 +1,12 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, Transition, useAnimate } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+
+import { Action, useDialog } from '../hooks/useDialogStore';
 
 export function Header() {
-  const [searching, setSearching] = useState<boolean>(false);
+  const { action, setAction } = useDialog();
+
   const [searchValue, setSearchValue] = useState<string>('');
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -21,9 +24,9 @@ export function Header() {
       if (!searchContainerRef.current) return;
 
       if (searchContainerRef.current.contains(e.target as Node)) {
-        setSearching(true);
-      } else {
-        setSearching(false);
+        setAction(Action.Searching);
+      } else if (useDialog.getState().action === Action.Searching) {
+        setAction(null);
       }
     };
 
@@ -35,7 +38,7 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    if (searching) return;
+    if (action === Action.Searching) return;
 
     let stopped = false;
     let controls: any[] = [];
@@ -71,42 +74,30 @@ export function Header() {
       controls.forEach((c) => c.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searching, animate]);
+  }, [action === Action.Searching, animate]);
 
   useEffect(() => {
-    if (searching) {
-      setSearchValue('');
-
+    if (action === Action.Searching) {
       if (!searchInputRef.current) return;
 
+      setSearchValue('');
       searchInputRef.current.focus();
     }
-  }, [searching]);
+  }, [action]);
 
   return (
     <>
-      <AnimatePresence>
-        {searching && (
-          <motion.div
-            className="fixed inset-0 backdrop-blur-md bg-white/0 z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
       <div className="flex justify-center">
         <div className="w-[1840px] max-w-[calc(100%_-_80px)] h-20 fixed flex items-center justify-between z-20">
           <div
-            className="relative flex flex-col gap-5"
+            className="relative flex flex-col gap-5 cursor-text"
             ref={searchContainerRef}
           >
             <div className="w-[360px] h-[18px] flex gap-1.5 overflow-hidden shrink-0">
               <p>search</p>
               <AnimatePresence>
                 <div className="h-full w-full relative overflow-hidden">
-                  {!searching && (
+                  {action !== Action.Searching && (
                     <div className="min-w-0 h-full flex flex-col" ref={scope}>
                       {
                         // temp
@@ -126,7 +117,7 @@ export function Header() {
                   )}
                   <input
                     className={`w-full h-full absolute flex-1 bg-transparent ${
-                      searching
+                      action === Action.Searching
                         ? 'opacity-100'
                         : 'opacity-0 pointer-events-none'
                     }`}
@@ -139,7 +130,7 @@ export function Header() {
               </AnimatePresence>
             </div>
             <AnimatePresence>
-              {searching && (
+              {action === Action.Searching && (
                 <motion.div
                   className="top-full mt-5 absolute flex flex-col gap-5"
                   initial={{ opacity: 0 }}
@@ -188,11 +179,12 @@ export function Header() {
             </AnimatePresence>
           </div>
           <p
-            className="cursor-pointer hover:underline"
+            className="absolute left-1/2 -translate-x-1/2 cursor-pointer"
             onClick={() => navigate('/')}
           >
             tasteshelf.com
           </p>
+          <p className="cursor-pointer hover:underline">list new item</p>
         </div>
       </div>
     </>

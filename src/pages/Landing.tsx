@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { ProductCard } from '../components/cards/ProductCard';
 
 export function Landing() {
@@ -45,7 +46,12 @@ export function Landing() {
           </div>
           <div className="px-[max(80px_,_calc((100%_-_1560px)_/_2))] grid grid-rows-2 grid-flow-col gap-x-10 no-scrollbar overflow-x-auto">
             {highlyRatedList.map((_, index) => (
-              <ProductCard key={index} firstRow={index % 2 === 0} />
+              <ProductCard
+                key={index}
+                company="Company"
+                product="Product"
+                isFirstRow={index % 2 === 0}
+              />
             ))}
           </div>
         </div>
@@ -58,7 +64,12 @@ export function Landing() {
           </div>
           <div className="px-[max(80px_,_calc((100%_-_1560px)_/_2))] grid grid-rows-2 grid-flow-col gap-x-10 no-scrollbar overflow-x-auto">
             {highlyRatedList.map((_, index) => (
-              <ProductCard key={index} firstRow={index % 2 === 0} />
+              <ProductCard
+                key={index}
+                company="Company"
+                product="Product"
+                isFirstRow={index % 2 === 0}
+              />
             ))}
           </div>
         </div>

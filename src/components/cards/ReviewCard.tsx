@@ -1,19 +1,15 @@
-export interface Review {
+interface Review {
   countryCode: string;
   date: Date;
   review: string;
+  isFirstRow: boolean;
 }
 
-export function ReviewCard({
-  countryCode,
-  date,
-  review,
-  firstRow,
-}: Review & { firstRow: boolean }) {
+export function ReviewCard({ countryCode, date, review, isFirstRow }: Review) {
   return (
     <div
       className={`w-full py-5 flex flex-col gap-2 overflow-hidden group shrink-0 ${
-        firstRow ? 'border-y' : 'border-b'
+        isFirstRow ? 'border-y' : 'border-b'
       }`}
     >
       <div className="flex items-center gap-1.5">
