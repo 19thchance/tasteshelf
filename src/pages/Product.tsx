@@ -163,7 +163,7 @@ export function Product() {
                   Product
                 </p>
               </div>
-              <p>
+              <p className="lowercase">
                 This is a sample description text used only for layout and
                 development purposes. It does not describe a specific product
                 and may be replaced with actual content later. The goal of this

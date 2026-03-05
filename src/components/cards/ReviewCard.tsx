@@ -10,7 +10,7 @@ interface Review {
 export function ReviewCard({ countryCode, date, review, isFirstRow }: Review) {
   return (
     <div
-      className={`w-full py-5 flex flex-col gap-2 overflow-hidden group shrink-0 ${
+      className={`w-full py-5 flex flex-col gap-2.5 overflow-hidden group shrink-0 ${
         isFirstRow ? 'border-y' : 'border-b'
       }`}
     >
@@ -28,7 +28,7 @@ export function ReviewCard({ countryCode, date, review, isFirstRow }: Review) {
           })}
         </small>
       </div>
-      <p>{review}</p>
+      <p>{review.toLowerCase()}</p>
     </div>
   );
 }

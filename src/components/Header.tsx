@@ -90,7 +90,7 @@ export function Header() {
                           key={i}
                           className="w-full h-full text-ellipsis overflow-hidden whitespace-nowrap shrink-0"
                         >
-                          {text}
+                          {text.toLowerCase()}
                         </motion.p>
                       ))
                     }
