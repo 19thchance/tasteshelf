@@ -1,119 +1,115 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+'use client';
 
-import { ProductCard } from '../components/cards/ProductCard';
-import { ReviewCard } from '../components/cards/ReviewCard';
-import { useDialog } from '../hooks/useDialogStore';
-import { Action } from '../types/dialogType';
-import { Review } from '../types/reviewType';
-import { getCountryIcon, getCountryName } from '../utils/country';
+import { useEffect, useRef, useState } from 'react';
 
-export function Product() {
-  const { setAction } = useDialog();
+import { ProductCard } from '../../../../components/cards/ProductCard';
+import { ReviewCard } from '../../../../components/cards/ReviewCard';
+import { TagTicker } from '../../../../components/TagTicker';
+import { useDialog } from '../../../../hooks/useDialogStore';
+import { Action } from '../../../../types/dialogType';
+import { Review } from '../../../../types/reviewType';
+import { getCountryIcon, getCountryName } from '../../../../utils/country';
 
-  // temp
-  const [featuredList, setFeaturedList] = useState<Array<any>>([]);
-  const [retailList, setRetailList] = useState<Array<any>>([]);
-  const [tagList, setTagList] = useState<Array<string>>([]);
-  const [reviewList, setReviewList] = useState<Review[]>([]);
+export default function ProductPage() {
+  const setAction = useDialog((state) => state.setAction);
 
-  useEffect(() => {
-    setFeaturedList([0, 0, 0, 0]);
-    setRetailList([0, 0, 0, 0]);
-    setTagList([
-      'low-price',
-      'sweet',
-      'tangy',
-      'highly-caffeinated',
-      'high-calorie',
-    ]);
-    setReviewList([
-      {
-        countryCode: 'ad',
-        date: new Date(),
-        review:
-          "This drink is honestly a disappointment from the first sip to the last. The flavor is weirdly artificial, like someone tried to recreate fruit using only chemicals and guesswork. It's way too sweet at first, then leaves a bitter aftertaste that just sits on your tongue.",
-        score: 2,
-      },
-      {
-        countryCode: 'ca',
-        date: new Date(),
-        review:
-          "Back in my day, a drink was simple and actually tasted like what it claimed. This thing is just sugar and nonsense with a fancy label. Too sweet, strange flavor, and probably full of things you can't even pronounce. I'll stick to real drinks, thanks.",
-        score: 10,
-      },
-      {
-        countryCode: 'de',
-        date: new Date(),
-        review:
-          'Es shmekt irgentwie komish und nich so wie auf der flashe. Ich dachte es is lecka aber es is zu süs und mein mund fühlt sich komich an. Meine freunde mochten das auch nich. Ich wil liba saft trinken.',
-        score: 15,
-      },
-      {
-        countryCode: 'kr',
-        date: new Date(),
-        review: '시발 존나맛없네',
-        score: 0,
-      },
-      {
-        countryCode: 'us',
-        date: new Date(),
-        review:
-          'Tastes like sugary water with a chemical aftertaste. Not refreshing at all — feels like a waste of money after two sips.',
-        score: 4,
-      },
-      {
-        countryCode: 'us',
-        date: new Date(),
-        review:
-          'Nah this drink is sketch as hell. Tastes fake af, like straight lab chemicals. You really expect me to believe this is "natural"? Yeah right. Big companies be putting random crap in here and hoping we\'re dumb. Shit left a weird film on my tongue too. I\'m not drinking that government juice.',
-        score: 2,
-      },
-      {
-        countryCode: 'kr',
-        date: new Date(),
-        review: '맛있는데 왜 다들 댓글에 욕하시는거죠;;',
-        score: 82,
-      },
-      {
-        countryCode: 'au',
-        date: new Date(),
-        review: 'tastes so ass',
-        score: 11,
-      },
-      {
-        countryCode: 'ca',
-        date: new Date(),
-        review:
-          "Ugh I wanted to like it so bad because the bottle is kinda cute, but it's literally not giving. It tastes super fake and way too sweet, like... who actually drinks this? I took two sips and was done. I'll just stick to my iced matcha. 💅",
-        score: 27,
-      },
-      {
-        countryCode: 'ad',
-        date: new Date(),
-        review:
-          "This drink is an abomination. It's like someone took a mediocre soda, added too much syrup, and called it a day. There's no balance of flavors, just a cloying sweetness that lingers way too long.",
-        score: 6,
-      },
-      {
-        countryCode: 'ad',
-        date: new Date(),
-        review:
-          'This drink is surprisingly refreshing! It has a perfect balance of tartness and sweetness, leaving a pleasant zing on the palate. I can taste the natural ingredients and it feels like a burst of real fruit in every sip.',
-        score: 98,
-      },
-    ]);
-  }, []);
+  const [columns, setColumns] = useState(3);
+  const [featuredList] = useState<Array<number>>(() =>
+    Array.from({ length: 4 }, (_, index) => index),
+  );
+  const [retailList] = useState<Array<number>>(() =>
+    Array.from({ length: 4 }, (_, index) => index),
+  );
+  const [tagList] = useState<Array<string>>(() => [
+    'low-price',
+    'sweet',
+    'tangy',
+    'highly-caffeinated',
+    'high-calorie',
+  ]);
+  const [reviewList] = useState<Review[]>(() => [
+    {
+      countryCode: 'ad',
+      date: new Date(),
+      review:
+        "This drink is honestly a disappointment from the first sip to the last. The flavor is weirdly artificial, like someone tried to recreate fruit using only chemicals and guesswork. It's way too sweet at first, then leaves a bitter aftertaste that just sits on your tongue.",
+      score: 2,
+    },
+    {
+      countryCode: 'ca',
+      date: new Date(),
+      review:
+        "Back in my day, a drink was simple and actually tasted like what it claimed. This thing is just sugar and nonsense with a fancy label. Too sweet, strange flavor, and probably full of things you can't even pronounce. I'll stick to real drinks, thanks.",
+      score: 10,
+    },
+    {
+      countryCode: 'de',
+      date: new Date(),
+      review:
+        'Es shmekt irgentwie komish und nich so wie auf der flashe. Ich dachte es is lecka aber es is zu süs und mein mund fühlt sich komich an. Meine freunde mochten das auch nich. Ich wil liba saft trinken.',
+      score: 15,
+    },
+    {
+      countryCode: 'kr',
+      date: new Date(),
+      review: '시발 존나맛없네',
+      score: 0,
+    },
+    {
+      countryCode: 'us',
+      date: new Date(),
+      review:
+        'Tastes like sugary water with a chemical aftertaste. Not refreshing at all - feels like a waste of money after two sips.',
+      score: 4,
+    },
+    {
+      countryCode: 'us',
+      date: new Date(),
+      review:
+        'Nah this drink is sketch as hell. Tastes fake af, like straight lab chemicals. You really expect me to believe this is "natural"? Yeah right. Big companies be putting random crap in here and hoping we\'re dumb. Shit left a weird film on my tongue too. I\'m not drinking that government juice.',
+      score: 2,
+    },
+    {
+      countryCode: 'kr',
+      date: new Date(),
+      review: '맛있는데 왜 다들 댓글에 욕하시는거죠;;',
+      score: 82,
+    },
+    {
+      countryCode: 'au',
+      date: new Date(),
+      review: 'tastes so ass',
+      score: 11,
+    },
+    {
+      countryCode: 'ca',
+      date: new Date(),
+      review:
+        "Ugh I wanted to like it so bad because the bottle is kinda cute, but it's literally not giving. It tastes super fake and way too sweet, like... who actually drinks this? I took two sips and was done. I'll just stick to my iced matcha. 💅",
+      score: 27,
+    },
+    {
+      countryCode: 'ad',
+      date: new Date(),
+      review:
+        "This drink is an abomination. It's like someone took a mediocre soda, added too much syrup, and called it a day. There's no balance of flavors, just a cloying sweetness that lingers way too long.",
+      score: 6,
+    },
+    {
+      countryCode: 'ad',
+      date: new Date(),
+      review:
+        'This drink is surprisingly refreshing! It has a perfect balance of tartness and sweetness, leaving a pleasant zing on the palate. I can taste the natural ingredients and it feels like a burst of real fruit in every sip.',
+      score: 98,
+    },
+  ]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(3);
 
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        // calculate columns: (width + gap) / (minWidth + gap)
-        // gap = 40px (gap-10)
-        // minWidth = 280px
         const calculatedColumns = Math.floor((width + 40) / (280 + 40));
 
         setColumns(Math.max(1, Math.min(3, calculatedColumns)));
@@ -126,28 +122,6 @@ export function Product() {
 
     return () => observer.disconnect();
   }, []);
-
-  const countryStats = useMemo(() => {
-    const stats: Record<string, { totalScore: number; count: number }> = {};
-
-    reviewList.forEach((review) => {
-      const countryCode = review.countryCode.toLowerCase();
-
-      if (!stats[countryCode]) {
-        stats[countryCode] = { totalScore: 0, count: 0 };
-      }
-
-      stats[countryCode].totalScore += review.score;
-      stats[countryCode].count += 1;
-    });
-
-    return Object.entries(stats)
-      .map(([code, { totalScore, count }]) => ({
-        code,
-        average: Math.round(totalScore / count),
-      }))
-      .sort((a, b) => b.average - a.average);
-  }, [reviewList]);
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -163,7 +137,7 @@ export function Product() {
                   Product
                 </p>
               </div>
-              <p className="lowercase">
+              <p>
                 This is a sample description text used only for layout and
                 development purposes. It does not describe a specific product
                 and may be replaced with actual content later. The goal of this
@@ -178,14 +152,13 @@ export function Product() {
                   <small>from your local retailer</small>
                 </div>
                 <div className="w-full pb-5 flex flex-col gap-2.5">
-                  {retailList.map((_, index) => (
+                  {retailList.map((index) => (
                     <div
                       className="w-full h-[60px] flex items-center justify-between gap-5 shrink-0 group cursor-pointer"
                       key={index}
                     >
                       <div className="min-w-0 flex flex-col gap-2 flex-1">
                         <div className="flex items-center gap-1.5">
-                          {/* temp */}
                           <img
                             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4qAKcxM410O8K7y5UZy8VQ7JQaBZsm8uZRA&s"
                             className="w-4 h-4 rounded-full"
@@ -227,6 +200,8 @@ export function Product() {
           <img
             src="https://shop.rosemont.ca/cdn/shop/products/mtndew_800x_f038c4c5-9adc-421f-a1b5-ea3f8c29980a.png?v=1627145543"
             className="h-[calc(100%_-_160px)] max-h-[720px] shrink-0 aspect-square"
+            loading="eager"
+            fetchPriority="high"
             alt="Beverage Product"
           />
         </div>
@@ -240,7 +215,7 @@ export function Product() {
             </div>
           </div>
           <div className="px-[max(80px_,_calc((100%_-_1560px)_/_2))] grid grid-rows-1 grid-flow-col gap-x-10 no-scrollbar overflow-x-auto">
-            {featuredList.map((_, index) => (
+            {featuredList.map((index) => (
               <ProductCard
                 key={index}
                 company="Company"
@@ -253,22 +228,44 @@ export function Product() {
         <div className="flex justify-center">
           <div className="w-[1560px] max-w-[calc(100%_-_160px)] flex gap-10 items-start">
             <div className="w-[360px] sticky top-20 flex flex-col gap-5 self-start">
-              <div className="py-5 bg-white border border-black no-scrollbar overflow-x-auto">
-                <div className="w-max h-10 px-5 flex items-center gap-5">
-                  {tagList.map((tag, index) => (
-                    <p className="shrink-0" key={index}>
-                      {tag}
-                    </p>
-                  ))}
-                </div>
-              </div>
+              <TagTicker tags={tagList} />
               <div className="w-[360px] max-h-[280px] px-5 flex flex-col bg-white border border-black no-scrollbar overflow-y-auto">
-                <div className="sticky top-0 py-5 flex flex-col gap-1">
-                  <p>user score</p>
-                  <small>ranked by country</small>
+                <div className="sticky top-0 py-5 flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <p>user score</p>
+                    <small>ranked by country</small>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <p>93</p>
+                  </div>
                 </div>
                 <div className="w-full pb-5 flex flex-col">
-                  {countryStats.map((stat, index) => (
+                  {[
+                    {
+                      code: 'kr',
+                      average: 41,
+                    },
+                    {
+                      code: 'ad',
+                      average: 35,
+                    },
+                    {
+                      code: 'ca',
+                      average: 19,
+                    },
+                    {
+                      code: 'de',
+                      average: 15,
+                    },
+                    {
+                      code: 'au',
+                      average: 12,
+                    },
+                    {
+                      code: 'us',
+                      average: 3,
+                    },
+                  ].map((stat, index) => (
                     <div
                       key={index}
                       className="w-full h-10 flex items-center justify-between gap-2"

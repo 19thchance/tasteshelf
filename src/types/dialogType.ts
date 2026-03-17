@@ -8,3 +8,9 @@ export enum Action {
   Listing,
   Reviewing,
 }
+
+export enum ReviewingStep {
+  Review,
+  Email,
+  Code,
+}

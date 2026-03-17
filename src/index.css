@@ -43,9 +43,32 @@
     line-height: 16px;
   }
 
+  textarea {
+    font-size: 14px;
+    line-height: 18px;
+
+    color: #000;
+  }
+
+  textarea::placeholder {
+    color: #999;
+
+    opacity: 1;
+  }
+
+  input {
+    color: #000;
+  }
+
   input:focus {
     outline: none;
     box-shadow: none;
+  }
+
+  input::placeholder {
+    color: #999;
+
+    opacity: 1;
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -71,15 +94,5 @@
   .footnote:hover {
     text-decoration: underline;
     text-decoration-line: underline;
-  }
-
-  .textarea {
-    font-size: 14px;
-    line-height: 18px;
-  }
-
-  .textarea:empty:before {
-    content: attr(data-placeholder);
-    color: #999;
   }
 }

@@ -1,158 +1,460 @@
-import { useEffect, useState, useRef } from 'react';
-import { motion } from 'motion/react';
+'use client';
+
+import { type FormEvent, useEffect, useRef, useState } from 'react';
+import {
+  animate,
+  AnimatePresence,
+  motion,
+  TargetAndTransition,
+  Transition,
+  useMotionValue,
+} from 'motion/react';
 
 import { useDialog } from '../hooks/useDialogStore';
-import { Action } from '../types/dialogType';
-import { getCountryIcon, getCountryName } from '../utils/country';
-import { useRegion } from '../hooks/useRegionStore';
+import { Action, ReviewingStep } from '../types/dialogType';
 
-const getCaretCharacterOffsetWithin = (element: HTMLElement) => {
-  const doc = element.ownerDocument || document;
-  const win = doc.defaultView || window;
-  const sel = win.getSelection();
+const SAMPLE_REVIEWS = [
+  'pretty solid everyday pick.\nnot too sweet, which is nice.\n\nwould buy again.',
+  'tastes exactly how it should.\nclean finish, no weird aftertaste.\n\ngood stuff.',
+  'actually really good.\nlight and refreshing.\n\ndefinitely going in the fridge.',
+  "wasn't expecting much but it hits.\nperfect for the afternoon.\n\nsolid.",
+  "simple. clean.\ndoesn't try too hard.\n\na new favorite.",
+  'smooth texture, great taste.\neasy to drink.\n\nwill stock up.',
+  'does the job perfectly.\nnot overly artificial.\n\nnice pickup.',
+  'really crisp.\nexactly what i needed today.\n\nrecommend it.',
+  'surprisingly good.\nsubtle flavor, nothing crazy.\n\nworth trying.',
+  'straight to the point.\ntastes great cold.\n\nwould get another.',
+];
+const LAYOUT_TRANSITION = {
+  duration: 0.4,
+  ease: [0.16, 1, 0.3, 1],
+} satisfies Transition;
+const STEP_TRANSITION = {
+  duration: 0.2,
+  ease: 'easeInOut',
+} satisfies Transition;
+const STEP_ENTER_ANIMATION = {
+  opacity: 1,
+  x: 0,
+  transition: STEP_TRANSITION,
+} satisfies TargetAndTransition;
+const DELAYED_STEP_ENTER_ANIMATION = {
+  opacity: 1,
+  x: 0,
+  transition: {
+    delay: 0.1,
+    ...STEP_TRANSITION,
+  },
+} satisfies TargetAndTransition;
+const STEP_EXIT_ANIMATION = {
+  pointerEvents: 'none' as const,
+  opacity: 0,
+  x: -4,
+  transition: STEP_TRANSITION,
+} satisfies TargetAndTransition;
 
-  let caretOffset = 0;
-
-  if (sel && sel.rangeCount > 0) {
-    const range = sel.getRangeAt(0);
-    const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(element);
-    preCaretRange.setEnd(range.endContainer, range.endOffset);
-    caretOffset = preCaretRange.toString().length;
-  }
-
-  return caretOffset;
+const isValidEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
-const setCaretPosition = (element: HTMLElement, offset: number) => {
-  const sel = window.getSelection();
-  const range = document.createRange();
+const handleStepSubmit = (
+  e: FormEvent<HTMLFormElement>,
+  canSubmit: boolean,
+  onSubmit: () => void,
+) => {
+  e.preventDefault();
 
-  let charIndex = 0;
-  let found = false;
+  if (!canSubmit) return;
 
-  if (!sel) return;
-
-  const traverseNodes = (node: Node) => {
-    if (found) return;
-
-    if (node.nodeType === Node.TEXT_NODE) {
-      const nextCharIndex = charIndex + (node.textContent?.length || 0);
-
-      if (!found && offset >= charIndex && offset <= nextCharIndex) {
-        range.setStart(node, offset - charIndex);
-        range.collapse(true);
-
-        found = true;
-      }
-
-      charIndex = nextCharIndex;
-    } else {
-      for (let i = 0; i < node.childNodes.length; i++) {
-        traverseNodes(node.childNodes[i]);
-      }
-    }
-  };
-
-  traverseNodes(element);
-
-  if (!found) {
-    range.selectNodeContents(element);
-    range.collapse(false);
-  }
-
-  sel.removeAllRanges();
-  sel.addRange(range);
+  onSubmit();
 };
+
+function SubmitButton({
+  disabled,
+  label,
+  loading = false,
+  onLoadingComplete,
+}: {
+  disabled: boolean;
+  label: string;
+  loading?: boolean;
+  onLoadingComplete?: () => void;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={disabled || loading}
+      className="w-full h-11 mt-2.5 bg-white relative overflow-hidden border border-black enabled:hover:underline disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-200 ease-in-out"
+    >
+      {loading && (
+        <motion.div
+          className="absolute inset-0 bg-[#f5f5f5] origin-left"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          onAnimationComplete={onLoadingComplete}
+        />
+      )}
+      <span className="relative">{label}</span>
+    </button>
+  );
+}
 
 export function Dialog() {
-  const { action, setAction } = useDialog();
-  const { countryCode } = useRegion();
+  const isReviewing = useDialog((state) => state.action === Action.Reviewing);
+  const setAction = useDialog((state) => state.setAction);
 
-  const [sampleReivew, setSampleReview] = useState<string>('');
-  const [content, setContent] = useState<string>('');
-  const contentRef = useRef<HTMLDivElement>(null);
-  const backup = useRef<{ html: string; caret: number }>({
-    html: '',
-    caret: 0,
+  const [step, setStep] = useState<ReviewingStep>(ReviewingStep.Review);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [sampleReview, setSampleReview] = useState<string>('');
+  const [canSubmitReview, setCanSubmitReview] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [code, setCode] = useState<string>('');
+  const [verifying, setVerifying] = useState<boolean>(false);
+  const [innerHeight, setInnerHeight] = useState<number | 'auto'>('auto');
+
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const codeInputRef = useRef<HTMLInputElement>(null);
+  const submitAnimationRef = useRef<ReturnType<typeof animate> | null>(null);
+  const backup = useRef<{
+    value: string;
+    selectionStart: number;
+    selectionEnd: number;
+    height: number;
+  }>({
+    value: '',
+    selectionStart: 0,
+    selectionEnd: 0,
+    height: 72,
   });
 
-  const sampleReviews = [
-    'pretty solid everyday pick.\nnot too sweet, which is nice.\n\nwould buy again.',
-    'tastes exactly how it should.\nclean finish, no weird aftertaste.\n\ngood stuff.',
-    'actually really good.\nlight and refreshing.\n\ndefinitely going in the fridge.',
-    "wasn't expecting much but it hits.\nperfect for the afternoon.\n\nsolid.",
-    "simple. clean.\ndoesn't try too hard.\n\na new favorite.",
-    'smooth texture, great taste.\neasy to drink.\n\nwill stock up.',
-    'does the job perfectly.\nnot overly artificial.\n\nnice pickup.',
-    'really crisp.\nexactly what i needed today.\n\nrecommend it.',
-    'surprisingly good.\nsubtle flavor, nothing crazy.\n\nworth trying.',
-    'straight to the point.\ntastes great cold.\n\nwould get another.',
-  ];
+  const submitOffsetY = useMotionValue(0);
+  const canSubmitEmail = Boolean(email.trim()) && isValidEmail(email);
+  const canSubmitCode = code.length === 6;
+
+  const moveCodeCaretToEnd = () => {
+    requestAnimationFrame(() => {
+      if (!codeInputRef.current) return;
+
+      const end = codeInputRef.current.value.length;
+
+      codeInputRef.current.setSelectionRange(end, end);
+    });
+  };
 
   useEffect(() => {
-    if (action === Action.Reviewing) {
-      setSampleReview(
-        sampleReviews[Math.floor(Math.random() * sampleReviews.length)],
-      );
+    if (!isReviewing) return;
 
-      contentRef.current?.focus();
+    setSampleReview(
+      SAMPLE_REVIEWS[Math.floor(Math.random() * SAMPLE_REVIEWS.length)],
+    );
+    setCanSubmitReview(false);
+    backup.current = {
+      value: '',
+      selectionStart: 0,
+      selectionEnd: 0,
+      height: 72,
+    };
+
+    if (contentRef.current) {
+      contentRef.current.value = '';
+      contentRef.current.style.height = '72px';
     }
-  }, [action]);
+
+    contentRef.current?.focus();
+    // eslint-disable-next-line
+  }, [isReviewing]);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setInnerHeight((entry.target as HTMLElement).offsetHeight);
+      }
+    });
+
+    observer.observe(innerRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (isReviewing && step === ReviewingStep.Review) return;
+
+    submitAnimationRef.current?.stop();
+    submitOffsetY.set(0);
+  }, [isReviewing, step, submitOffsetY]);
 
   return (
-    <motion.div
-      className="w-[360px] top-1/2 right-[max(40px_,_calc((100%_-_1840px)_/_2))] fixed flex flex-col gap-5 -translate-y-1/2 z-10"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="w-[360px] p-5 relative flex flex-col gap-5 bg-white border border-black">
-        <div className="sticky top-0 flex flex-col gap-1">
-          <p>write your review</p>
-          <small className="block text-ellipsis overflow-hidden whitespace-nowrap">
-            of Citrus Flavoured Soft Drink
-          </small>
-        </div>
-        <div
-          ref={contentRef}
-          className="min-h-[72px] max-h-[180px] textarea w-full shrink-0 bg-transparent whitespace-pre-wrap overflow-hidden"
-          contentEditable
-          suppressContentEditableWarning
-          data-placeholder={sampleReivew}
-          onBeforeInput={() => {
-            if (!contentRef.current) return;
+    <div className="w-screen h-screen fixed inset-0 flex items-center justify-center z-10 pointer-events-none">
+      <div
+        className="w-[360px] relative pointer-events-auto"
+        style={{
+          transform:
+            'translateX(calc(50vw - 180px - max(40px, calc((100vw - 1840px) / 2))))',
+        }}
+      >
+        <motion.div
+          className="flex flex-col gap-5"
+          initial={{ opacity: 0 }}
+          animate={
+            submitted
+              ? { scale: [1, 1.03, 1], opacity: [1, 1, 0] }
+              : { opacity: 1 }
+          }
+          exit={{ opacity: 0 }}
+          transition={
+            submitted
+              ? { duration: 0.3, times: [0, 0.4, 1], ease: 'easeInOut' }
+              : { duration: 0.2, ease: 'easeInOut' }
+          }
+          onAnimationComplete={() => {
+            if (!submitted) return;
 
-            backup.current = {
-              html: contentRef.current.innerHTML,
-              caret: getCaretCharacterOffsetWithin(contentRef.current),
-            };
+            setAction(null);
           }}
-          onInput={(e) => {
-            if (!contentRef.current) return;
-
-            if (e.currentTarget.scrollHeight > 182) {
-              contentRef.current.innerHTML = backup.current.html;
-
-              setCaretPosition(contentRef.current, backup.current.caret);
-            } else {
-              backup.current = {
-                html: contentRef.current.innerHTML,
-                caret: getCaretCharacterOffsetWithin(contentRef.current),
-              };
-            }
-
-            setContent(contentRef.current.innerText);
-          }}
-        />
-        <button
-          disabled={!content.trim()}
-          className="h-11 mt-2.5 bg-white border border-black enabled:hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          submit
-        </button>
+          <motion.div
+            className="w-[360px] relative bg-white border border-black overflow-hidden"
+            animate={{
+              height: innerHeight === 'auto' ? 'auto' : innerHeight + 2,
+            }}
+            transition={{
+              duration: 0.4,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            <div
+              ref={innerRef}
+              className="min-h-[174px] p-5 relative flex flex-col justify-center"
+            >
+              <AnimatePresence mode="wait">
+                {step === ReviewingStep.Review && (
+                  <motion.div
+                    key="review"
+                    className="w-full flex flex-col gap-5 shrink-0"
+                    initial={{ opacity: 1, x: 0 }}
+                    animate={STEP_ENTER_ANIMATION}
+                    exit={STEP_EXIT_ANIMATION}
+                  >
+                    <form
+                      className="w-full flex flex-col gap-5"
+                      onSubmit={(e) =>
+                        handleStepSubmit(e, canSubmitReview, () =>
+                          setStep(ReviewingStep.Email),
+                        )
+                      }
+                    >
+                      <div className="w-full flex flex-col gap-1">
+                        <p>write your review</p>
+                        <small className="block text-ellipsis overflow-hidden whitespace-nowrap">
+                          of Citrus Flavoured Soft Drink
+                        </small>
+                      </div>
+                      <textarea
+                        ref={contentRef}
+                        className="w-full h-[72px] max-h-[180px] shrink-0 bg-transparent resize-none overflow-hidden"
+                        placeholder={sampleReview}
+                        rows={1}
+                        onBeforeInput={() => {
+                          if (!contentRef.current) return;
+
+                          backup.current = {
+                            value: contentRef.current.value,
+                            selectionStart:
+                              contentRef.current.selectionStart ??
+                              contentRef.current.value.length,
+                            selectionEnd:
+                              contentRef.current.selectionEnd ??
+                              contentRef.current.value.length,
+                            height: contentRef.current.offsetHeight,
+                          };
+                        }}
+                        onInput={(e) => {
+                          const textarea = e.currentTarget;
+                          const previousHeight = backup.current.height;
+                          const nextValue = textarea.value;
+
+                          textarea.style.height = '72px';
+
+                          if (textarea.scrollHeight > 182) {
+                            textarea.value = backup.current.value;
+                            textarea.style.height = `${backup.current.height}px`;
+                            textarea.setSelectionRange(
+                              backup.current.selectionStart,
+                              backup.current.selectionEnd,
+                            );
+                          } else {
+                            const nextHeight = Math.max(
+                              72,
+                              textarea.scrollHeight,
+                            );
+
+                            textarea.style.height = `${nextHeight}px`;
+
+                            backup.current = {
+                              value: nextValue,
+                              selectionStart:
+                                textarea.selectionStart ?? nextValue.length,
+                              selectionEnd:
+                                textarea.selectionEnd ?? nextValue.length,
+                              height: nextHeight,
+                            };
+
+                            const delta = nextHeight - previousHeight;
+
+                            if (delta) {
+                              submitAnimationRef.current?.stop();
+                              submitOffsetY.set(submitOffsetY.get() - delta);
+                              submitAnimationRef.current = animate(
+                                submitOffsetY,
+                                0,
+                                LAYOUT_TRANSITION,
+                              );
+                            }
+                          }
+
+                          setCanSubmitReview((prev) => {
+                            const next = Boolean(textarea.value.trim());
+
+                            return prev === next ? prev : next;
+                          });
+                        }}
+                      />
+                      <motion.div
+                        className="w-full"
+                        style={{ y: submitOffsetY }}
+                      >
+                        <SubmitButton
+                          disabled={!canSubmitReview}
+                          label="submit"
+                        />
+                      </motion.div>
+                    </form>
+                  </motion.div>
+                )}
+                {step === ReviewingStep.Email && (
+                  <motion.div
+                    key="email"
+                    className="w-full flex flex-col gap-5 shrink-0"
+                    initial={{ opacity: 0, x: 4 }}
+                    animate={DELAYED_STEP_ENTER_ANIMATION}
+                    exit={STEP_EXIT_ANIMATION}
+                  >
+                    <form
+                      className="w-full flex flex-col gap-5"
+                      onSubmit={(e) =>
+                        handleStepSubmit(e, canSubmitEmail, () =>
+                          setStep(ReviewingStep.Code),
+                        )
+                      }
+                    >
+                      <div className="w-full flex flex-col gap-1">
+                        <p>enter your email</p>
+                        <small className="block text-ellipsis overflow-hidden whitespace-nowrap">
+                          we'll send a one-time code
+                        </small>
+                      </div>
+                      <input
+                        type="email"
+                        placeholder="email@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-transparent"
+                        autoFocus
+                      />
+                      <SubmitButton
+                        disabled={!canSubmitEmail}
+                        label="continue"
+                      />
+                    </form>
+                  </motion.div>
+                )}
+                {step === ReviewingStep.Code && (
+                  <motion.div
+                    key="code"
+                    className="w-full flex flex-col gap-5 shrink-0"
+                    initial={{ opacity: 0, x: 4 }}
+                    animate={DELAYED_STEP_ENTER_ANIMATION}
+                    exit={STEP_EXIT_ANIMATION}
+                  >
+                    <form
+                      className="w-full flex flex-col gap-5"
+                      onSubmit={(e) =>
+                        handleStepSubmit(e, canSubmitCode && !verifying, () =>
+                          setVerifying(true),
+                        )
+                      }
+                    >
+                      <div className="flex flex-col gap-1 w-full">
+                        <p>confirm your email</p>
+                        <small className="block leading-4 break-all">
+                          sent to {email}
+                        </small>
+                      </div>
+                      <div className="w-full">
+                        <div className="relative w-full">
+                          <input
+                            ref={codeInputRef}
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={code}
+                            onChange={(e) =>
+                              setCode(
+                                e.target.value.replace(/\D/g, '').slice(0, 6),
+                              )
+                            }
+                            onFocus={moveCodeCaretToEnd}
+                            onClick={moveCodeCaretToEnd}
+                            className="w-full h-full absolute inset-0 opacity-0 cursor-text"
+                            aria-label="verification code"
+                            autoFocus
+                          />
+                          <div className="h-[72px] flex items-center justify-center gap-1.5 pointer-events-none select-none">
+                            {Array.from({ length: 6 }, (_, index) => {
+                              const digit = code[index];
+                              const isFilled = Boolean(digit);
+
+                              return (
+                                <div
+                                  key={index}
+                                  className="w-5 h-full flex items-center justify-center"
+                                >
+                                  {isFilled ? (
+                                    <span className="text-xl leading-none tabular-nums">
+                                      {digit}
+                                    </span>
+                                  ) : (
+                                    <span className="w-1 h-1 block bg-black" />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <SubmitButton
+                        disabled={!canSubmitCode}
+                        label="verify"
+                        loading={verifying}
+                        onLoadingComplete={() => {
+                          setVerifying(false);
+                          setSubmitted(true);
+                        }}
+                      />
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </motion.div>
+    </div>
   );
 }

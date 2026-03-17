@@ -18,6 +18,8 @@ export function ReviewCard({ countryCode, date, review, isFirstRow }: Review) {
         <img
           src={getCountryIcon(countryCode)}
           className="w-[18px] h-[18px]"
+          loading="lazy"
+          decoding="async"
           alt={countryCode}
         />
         <small className="text-xs">

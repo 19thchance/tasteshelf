@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
+'use client';
+
+import { useState } from 'react';
 
 import { ProductCard } from '../components/cards/ProductCard';
 
-export function Landing() {
-  // temp
-  const [featuredList, setFeaturedList] = useState<Array<any>>([]);
-  const [highlyRatedList, setHighlyRatedList] = useState<Array<any>>([]);
-
-  useEffect(() => {
-    setFeaturedList([0, 0, 0, 0, 0, 0, 0, 0]);
-    setHighlyRatedList([0, 0, 0, 0, 0, 0, 0, 0]);
-  }, []);
+export default function LandingPage() {
+  const [featuredList] = useState<Array<number>>(() =>
+    Array.from({ length: 8 }, (_, index) => index),
+  );
+  const [highlyRatedList] = useState<Array<number>>(() =>
+    Array.from({ length: 8 }, (_, index) => index),
+  );
 
   return (
     <div className="w-full flex flex-col">
@@ -26,7 +26,7 @@ export function Landing() {
       </style>
       <div className="flex justify-center">
         <div className="w-[1840px] max-w-full h-[280px] my-60 px-10 flex gap-20 items-center no-scrollbar overflow-x-auto fade-mask-large-screen">
-          {featuredList.map((_, index) => (
+          {featuredList.map((index) => (
             <img
               key={index}
               src="https://shop.rosemont.ca/cdn/shop/products/mtndew_800x_f038c4c5-9adc-421f-a1b5-ea3f8c29980a.png?v=1627145543"
@@ -45,7 +45,7 @@ export function Landing() {
             </div>
           </div>
           <div className="px-[max(80px_,_calc((100%_-_1560px)_/_2))] grid grid-rows-2 grid-flow-col gap-x-10 no-scrollbar overflow-x-auto">
-            {highlyRatedList.map((_, index) => (
+            {highlyRatedList.map((index) => (
               <ProductCard
                 key={index}
                 company="Company"
@@ -63,7 +63,7 @@ export function Landing() {
             </div>
           </div>
           <div className="px-[max(80px_,_calc((100%_-_1560px)_/_2))] grid grid-rows-2 grid-flow-col gap-x-10 no-scrollbar overflow-x-auto">
-            {highlyRatedList.map((_, index) => (
+            {highlyRatedList.map((index) => (
               <ProductCard
                 key={index}
                 company="Company"

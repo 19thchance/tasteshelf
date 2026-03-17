@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+'use client';
+
+import { useRouter } from 'next/navigation';
 
 interface Product {
   company: string;
@@ -7,7 +9,7 @@ interface Product {
 }
 
 export function ProductCard({ company, product, isFirstRow }: Product) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div
@@ -15,7 +17,7 @@ export function ProductCard({ company, product, isFirstRow }: Product) {
         isFirstRow ? 'border-y' : 'border-b'
       }`}
       onClick={() =>
-        navigate(
+        router.push(
           `/item/${company.replaceAll(' ', '-').toLowerCase()}/${product.replaceAll(' ', '-').toLowerCase()}`,
         )
       }
@@ -23,6 +25,8 @@ export function ProductCard({ company, product, isFirstRow }: Product) {
       <img
         src="https://shop.rosemont.ca/cdn/shop/products/mtndew_800x_f038c4c5-9adc-421f-a1b5-ea3f8c29980a.png?v=1627145543"
         className="h-20 shrink-0 aspect-square"
+        loading="lazy"
+        decoding="async"
         alt="Beverage Product"
       />
       <div className="overflow-hidden flex flex-col gap-1">
