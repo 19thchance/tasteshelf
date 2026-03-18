@@ -96,3 +96,54 @@
     text-decoration-line: underline;
   }
 }
+
+@layer components {
+  div[class*='flex'][class*='flex-col'][class*='items-end'][class*='gap-5']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']:first-child,
+  div[class*='sticky'][class*='top-20'][class*='flex'][class*='flex-col'][class*='gap-5'][class*='self-start']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black'] {
+    position: relative;
+    height: 280px;
+    overflow-y: visible !important;
+  }
+
+  div[class*='flex'][class*='flex-col'][class*='items-end'][class*='gap-5']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']:first-child
+    > div[class*='sticky'][class*='top-0'],
+  div[class*='sticky'][class*='top-20'][class*='flex'][class*='flex-col'][class*='gap-5'][class*='self-start']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']
+    > div[class*='sticky'][class*='top-0'] {
+    position: absolute !important;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  div[class*='flex'][class*='flex-col'][class*='items-end'][class*='gap-5']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']:first-child
+    > div[class*='sticky'][class*='top-0']
+    + div,
+  div[class*='sticky'][class*='top-20'][class*='flex'][class*='flex-col'][class*='gap-5'][class*='self-start']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']
+    > div[class*='sticky'][class*='top-0']
+    + div {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding-top: 58px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  div[class*='flex'][class*='flex-col'][class*='items-end'][class*='gap-5']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']:first-child
+    > div[class*='sticky'][class*='top-0']
+    + div::-webkit-scrollbar,
+  div[class*='sticky'][class*='top-20'][class*='flex'][class*='flex-col'][class*='gap-5'][class*='self-start']
+    > div[class*='max-h-[280px]'][class*='overflow-y-auto'][class*='border-black']
+    > div[class*='sticky'][class*='top-0']
+    + div::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -146,15 +146,15 @@ export default function ProductPage() {
               </p>
             </div>
             <div className="flex flex-col items-end gap-5">
-              <div className="w-[360px] max-h-[280px] px-5 flex flex-col bg-white border border-black no-scrollbar overflow-y-auto">
-                <div className="sticky top-0 py-5 flex flex-col gap-1">
+              <div className="w-[360px] max-h-[280px] flex flex-col bg-white border border-black no-scrollbar overflow-y-auto">
+                <div className="pt-5 px-5 sticky top-0 flex flex-col gap-1">
                   <p>get it now</p>
                   <small>from your local retailer</small>
                 </div>
-                <div className="w-full pb-5 flex flex-col gap-2.5">
+                <div className="w-full pb-5 px-5 flex flex-col gap-2.5">
                   {retailList.map((index) => (
                     <div
-                      className="w-full h-[60px] flex items-center justify-between gap-5 shrink-0 group cursor-pointer"
+                      className={`w-full h-[60px] flex items-center justify-between gap-5 shrink-0 group cursor-pointer ${index === 0 && 'mt-5'}`}
                       key={index}
                     >
                       <div className="min-w-0 flex flex-col gap-2 flex-1">
@@ -230,16 +230,13 @@ export default function ProductPage() {
             <div className="w-[360px] sticky top-20 flex flex-col gap-5 self-start">
               <TagTicker tags={tagList} />
               <div className="w-[360px] max-h-[280px] px-5 flex flex-col bg-white border border-black no-scrollbar overflow-y-auto">
-                <div className="sticky top-0 py-5 flex items-center justify-between">
+                <div className="sticky top-0 p-5 flex items-center justify-between">
                   <div className="flex flex-col gap-1">
                     <p>user score</p>
                     <small>ranked by country</small>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <p>93</p>
-                  </div>
                 </div>
-                <div className="w-full pb-5 flex flex-col">
+                <div className="w-full pb-5 px-5 flex flex-col">
                   {[
                     {
                       code: 'kr',
@@ -268,9 +265,9 @@ export default function ProductPage() {
                   ].map((stat, index) => (
                     <div
                       key={index}
-                      className="w-full h-10 flex items-center justify-between gap-2"
+                      className={`w-full flex items-center justify-between gap-2 ${index === 0 && 'mt-5'}`}
                     >
-                      <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="flex h-10 items-center gap-2 overflow-hidden">
                         <img
                           src={getCountryIcon(stat.code)}
                           className="w-[18px] h-[18px] shrink-0"
