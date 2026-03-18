@@ -5,6 +5,7 @@ import {
   animate,
   AnimatePresence,
   motion,
+  MotionValue,
   TargetAndTransition,
   Transition,
   useMotionValue,
@@ -105,12 +106,12 @@ export function Dialog() {
   const setAction = useDialog((state) => state.setAction);
 
   const [step, setStep] = useState<ReviewingStep>(ReviewingStep.Review);
-  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [sampleReview, setSampleReview] = useState<string>('');
   const [canSubmitReview, setCanSubmitReview] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [code, setCode] = useState<string>('');
-  const [verifying, setVerifying] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [innerHeight, setInnerHeight] = useState<number | 'auto'>('auto');
 
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -129,9 +130,9 @@ export function Dialog() {
     height: 72,
   });
 
-  const submitOffsetY = useMotionValue(0);
-  const canSubmitEmail = Boolean(email.trim()) && isValidEmail(email);
-  const canSubmitCode = code.length === 6;
+  const submitOffsetY: MotionValue<number> = useMotionValue(0);
+  const canSubmitEmail: boolean = Boolean(email.trim()) && isValidEmail(email);
+  const canSubmitCode: boolean = code.length === 6;
 
   const moveCodeCaretToEnd = () => {
     requestAnimationFrame(() => {
@@ -200,18 +201,18 @@ export function Dialog() {
           className="flex flex-col gap-5"
           initial={{ opacity: 0 }}
           animate={
-            submitted
+            isSubmitted
               ? { scale: [1, 1.03, 1], opacity: [1, 1, 0] }
               : { opacity: 1 }
           }
           exit={{ opacity: 0 }}
           transition={
-            submitted
+            isSubmitted
               ? { duration: 0.3, times: [0, 0.4, 1], ease: 'easeInOut' }
               : { duration: 0.2, ease: 'easeInOut' }
           }
           onAnimationComplete={() => {
-            if (!submitted) return;
+            if (!isSubmitted) return;
 
             setAction(null);
           }}
@@ -383,8 +384,8 @@ export function Dialog() {
                     <form
                       className="w-full flex flex-col gap-5"
                       onSubmit={(e) =>
-                        handleStepSubmit(e, canSubmitCode && !verifying, () =>
-                          setVerifying(true),
+                        handleStepSubmit(e, canSubmitCode && !isVerifying, () =>
+                          setIsVerifying(true),
                         )
                       }
                     >
@@ -441,10 +442,10 @@ export function Dialog() {
                       <SubmitButton
                         disabled={!canSubmitCode}
                         label="verify"
-                        loading={verifying}
+                        loading={isVerifying}
                         onLoadingComplete={() => {
-                          setVerifying(false);
-                          setSubmitted(true);
+                          setIsVerifying(false);
+                          setIsSubmitted(true);
                         }}
                       />
                     </form>
