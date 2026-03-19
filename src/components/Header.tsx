@@ -1,15 +1,27 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, Transition, useAnimate } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  type Transition,
+  useAnimate,
+} from 'motion/react';
 import { useRouter } from 'next/navigation';
 
 import { useDialog } from '../hooks/useDialogStore';
+import { ProductTicker } from './ProductTicker';
 import { Action } from '../types/dialogType';
+
+const SEARCH_TEXT_HOLD_MS = 2000;
+const SEARCH_PREVIEW_PRODUCTS = Array.from({ length: 8 }, () => ({
+  alt: 'Beverage Product',
+  src: 'https://image.goat.com/transform/v1/attachments/product_template_pictures/images/115/095/782/original/KJ2932.png.png?width=200',
+}));
 
 const textTransition = {
   duration: 1,
-  ease: 'easeInOut',
+  ease: 'easeOut',
 } satisfies Transition;
 
 function SearchControl() {
@@ -23,31 +35,40 @@ function SearchControl() {
   const [scope, animate] = useAnimate();
 
   useEffect(() => {
-    if (isSearching) return;
+    if (isSearching) {
+      return;
+    }
 
     let stopped = false;
-    let controls: any[] = [];
+    let controls: Array<ReturnType<typeof animate>> = [];
 
     const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
     const loopMarquee = async () => {
       while (!stopped) {
-        await sleep(2000);
-        if (stopped || !scope.current) break;
+        await sleep(SEARCH_TEXT_HOLD_MS);
+
+        if (stopped || !scope.current) {
+          break;
+        }
 
         controls = [
           animate('p:first-child', { y: [0, 18] }, textTransition),
           animate('p:last-child', { y: [-36, -18] }, textTransition),
         ];
-        await Promise.all(controls);
 
-        await sleep(2000);
-        if (stopped || !scope.current) break;
+        await Promise.all(controls);
+        await sleep(SEARCH_TEXT_HOLD_MS);
+
+        if (stopped || !scope.current) {
+          break;
+        }
 
         controls = [
           animate('p:first-child', { y: [-18, 0] }, textTransition),
           animate('p:last-child', { y: [-18, 0] }, textTransition),
         ];
+
         await Promise.all(controls);
       }
     };
@@ -58,7 +79,9 @@ function SearchControl() {
       stopped = true;
       controls.forEach((c) => c.stop());
 
-      if (!scope.current) return;
+      if (!scope.current) {
+        return;
+      }
 
       const lines = scope.current.querySelectorAll(
         'p',
@@ -71,7 +94,9 @@ function SearchControl() {
   }, [animate, isSearching, scope]);
 
   useEffect(() => {
-    if (!isSearching || !searchInputRef.current) return;
+    if (!isSearching || !searchInputRef.current) {
+      return;
+    }
 
     setSearchValue('');
     searchInputRef.current.focus();
@@ -79,10 +104,10 @@ function SearchControl() {
 
   return (
     <div
-      className="relative flex flex-col gap-5 cursor-text pointer-events-auto"
+      className="relative flex flex-col gap-5 pointer-events-auto"
       onClick={() => setAction(Action.Searching)}
     >
-      <div className="w-[360px] h-[18px] flex gap-1.5 overflow-hidden shrink-0">
+      <div className="w-[360px] h-[18px] flex gap-1.5 overflow-hidden cursor-text shrink-0">
         <p>search</p>
         <div className="w-full h-full relative overflow-hidden">
           {!isSearching && (
@@ -118,20 +143,9 @@ function SearchControl() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
-            <div className="w-[360px] p-5 flex gap-5 bg-white border border-black no-scrollbar overflow-x-auto">
-              {Array.from({ length: 8 }).map((_, index) => {
-                return (
-                  <img
-                    key={index}
-                    src="https://image.goat.com/transform/v1/attachments/product_template_pictures/images/115/095/782/original/KJ2932.png.png?width=200"
-                    className="w-[60px] shrink-0 aspect-square cursor-pointer"
-                    alt="Beverage Product"
-                  />
-                );
-              })}
-            </div>
+            <ProductTicker products={SEARCH_PREVIEW_PRODUCTS} />
             <div className="w-[360px] p-5 bg-white border border-black group">
               <div className="flex flex-wrap gap-x-5">
                 {[
@@ -180,20 +194,9 @@ function ListingControl() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
-            <div className="w-[360px] p-5 flex gap-5 bg-white border border-black no-scrollbar overflow-x-auto">
-              {Array.from({ length: 8 }).map((_, index) => {
-                return (
-                  <img
-                    key={index}
-                    src="https://image.goat.com/transform/v1/attachments/product_template_pictures/images/115/095/782/original/KJ2932.png.png?width=200"
-                    className="w-[60px] shrink-0 aspect-square cursor-pointer"
-                    alt="Beverage Product"
-                  />
-                );
-              })}
-            </div>
+            <ProductTicker products={SEARCH_PREVIEW_PRODUCTS} />
           </motion.div>
         )}
       </AnimatePresence>

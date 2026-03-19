@@ -32,7 +32,7 @@ const LAYOUT_TRANSITION = {
 } satisfies Transition;
 const STEP_TRANSITION = {
   duration: 0.2,
-  ease: 'easeInOut',
+  ease: 'easeOut',
 } satisfies Transition;
 const STEP_ENTER_ANIMATION = {
   opacity: 1,
@@ -85,14 +85,14 @@ function SubmitButton({
     <button
       type="submit"
       disabled={disabled || loading}
-      className="w-full h-11 mt-2.5 bg-white relative overflow-hidden border border-black enabled:hover:underline disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-200 ease-in-out"
+      className="w-full h-11 mt-2.5 bg-white relative overflow-hidden border border-black enabled:hover:underline disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-200 ease-out"
     >
       {loading && (
         <motion.div
           className="absolute inset-0 bg-[#f5f5f5] origin-left"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           onAnimationComplete={onLoadingComplete}
         />
       )}
@@ -208,8 +208,8 @@ export function Dialog() {
           exit={{ opacity: 0 }}
           transition={
             isSubmitted
-              ? { duration: 0.3, times: [0, 0.4, 1], ease: 'easeInOut' }
-              : { duration: 0.2, ease: 'easeInOut' }
+              ? { duration: 0.3, times: [0, 0.4, 1], ease: 'easeOut' }
+              : { duration: 0.2, ease: 'easeOut' }
           }
           onAnimationComplete={() => {
             if (!isSubmitted) return;
