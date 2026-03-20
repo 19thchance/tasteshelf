@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { Dialog } from './Dialog';
-import { Header } from './Header';
+import { Header } from './header/Header';
 import { useDialog } from '../hooks/useDialogStore';
 import { useRegion } from '../hooks/useRegionStore';
 import { getCountryCode } from '../services/regionService';

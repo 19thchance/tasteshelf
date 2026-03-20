@@ -7,31 +7,39 @@ import {
   type Transition,
   useAnimate,
 } from 'motion/react';
-import { useRouter } from 'next/navigation';
 
-import { useDialog } from '../hooks/useDialogStore';
-import { ProductTicker } from './ProductTicker';
-import { Action } from '../types/dialogType';
+import { useDialog } from '../../hooks/useDialogStore';
+import { Action } from '../../types/dialogType';
+import { ProductTicker } from '../ProductTicker';
+import { HEADER_PREVIEW_PRODUCTS } from './constants';
 
 const SEARCH_TEXT_HOLD_MS = 2000;
-const SEARCH_PREVIEW_PRODUCTS = Array.from({ length: 8 }, () => ({
-  alt: 'Beverage Product',
-  src: 'https://image.goat.com/transform/v1/attachments/product_template_pictures/images/115/095/782/original/KJ2932.png.png?width=200',
-}));
+const SEARCH_MARQUEE_TEXTS = [
+  'Mountain Dew Citrus Flavored Soft Drink',
+  'Red Bull Yellow Edition Energy Drink (Tropical Flavor)',
+];
+const SEARCH_SUGGESTIONS = [
+  'PRIME Hydration Blue Raspberry',
+  'Red Bull Yellow Edition Energy Drink (Tropical Flavor)',
+  'Mountain Dew Citrus Flavoured Soft Drink',
+  'Starbucks Frappuccino Caramel',
+  'Red Bull Energy Drink',
+  'Crush Orange',
+  'Dr Pepper Cherry',
+  'Canada Dry Ginger Ale',
+];
 
 const textTransition = {
   duration: 1,
   ease: 'easeOut',
 } satisfies Transition;
 
-function SearchControl() {
+export function SearchControl() {
   const isSearching = useDialog((state) => state.action === Action.Searching);
   const setAction = useDialog((state) => state.setAction);
 
-  const [searchValue, setSearchValue] = useState<string>('');
-
+  const [searchValue, setSearchValue] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
-
   const [scope, animate] = useAnimate();
 
   useEffect(() => {
@@ -77,7 +85,7 @@ function SearchControl() {
 
     return () => {
       stopped = true;
-      controls.forEach((c) => c.stop());
+      controls.forEach((control) => control.stop());
 
       if (!scope.current) {
         return;
@@ -112,12 +120,9 @@ function SearchControl() {
         <div className="w-full h-full relative overflow-hidden">
           {!isSearching && (
             <div className="min-w-0 h-full flex flex-col" ref={scope}>
-              {[
-                'Mountain Dew Citrus Flavored Soft Drink',
-                'Red Bull Yellow Edition Energy Drink (Tropical Flavor)',
-              ].map((text, i) => (
+              {SEARCH_MARQUEE_TEXTS.map((text, index) => (
                 <motion.p
-                  key={i}
+                  key={index}
                   className="w-full h-full text-ellipsis overflow-hidden whitespace-nowrap shrink-0"
                 >
                   {text.toLowerCase()}
@@ -132,7 +137,7 @@ function SearchControl() {
             ref={searchInputRef}
             type="text"
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={(event) => setSearchValue(event.target.value)}
           />
         </div>
       </div>
@@ -145,19 +150,12 @@ function SearchControl() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
-            <ProductTicker products={SEARCH_PREVIEW_PRODUCTS} />
+            <ProductTicker products={HEADER_PREVIEW_PRODUCTS} />
             <div className="w-[360px] p-5 bg-white border border-black group">
               <div className="flex flex-wrap gap-x-5">
                 {[
                   ...(searchValue ? [`all ${searchValue}`] : []),
-                  'PRIME Hydration Blue Raspberry',
-                  'Red Bull Yellow Edition Energy Drink (Tropical Flavor)',
-                  'Mountain Dew Citrus Flavoured Soft Drink',
-                  'Starbucks Frappuccino Caramel',
-                  'Red Bull Energy Drink',
-                  'Crush Orange',
-                  'Dr Pepper Cherry',
-                  'Canada Dry Ginger Ale',
+                  ...SEARCH_SUGGESTIONS,
                 ].map((text, index) => (
                   <p
                     key={index}
@@ -173,52 +171,6 @@ function SearchControl() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function ListingControl() {
-  const isListing = useDialog((state) => state.action === Action.Listing);
-  const setAction = useDialog((state) => state.setAction);
-
-  return (
-    <div
-      className="relative flex flex-col items-end pointer-events-auto"
-      onClick={() => setAction(Action.Listing)}
-    >
-      <p className="cursor-pointer hover:underline">list new item</p>
-      <AnimatePresence>
-        {isListing && (
-          <motion.div
-            className="top-full mt-5 absolute flex flex-col gap-5"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-          >
-            <ProductTicker products={SEARCH_PREVIEW_PRODUCTS} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-export function Header() {
-  const router = useRouter();
-
-  return (
-    <div className="flex justify-center pointer-events-none">
-      <div className="w-[1840px] max-w-[calc(100%_-_80px)] h-20 fixed flex items-center justify-between z-20">
-        <SearchControl />
-        <p
-          className="absolute left-1/2 -translate-x-1/2 cursor-pointer pointer-events-auto"
-          onClick={() => router.push('/')}
-        >
-          tasteshelf.com
-        </p>
-        <ListingControl />
-      </div>
     </div>
   );
 }
